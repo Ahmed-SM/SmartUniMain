@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#D81B60"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp">
+
+        <Button
+            android:id="@+id/buttonBack"
+            android:layout_width="29dp"
+            android:layout_height="29dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="start|bottom"
+            android:layout_marginStart="11dp"
+            android:background="@drawable/ic_baseline_keyboard_backspace_24px" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginEnd="0dp"
+            android:background="#D81B60"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:text="test"
+            android:textAlignment="center"
+            android:textColor="#ffff"
+            android:textSize="24sp" />
+
+    </RelativeLayout>
+
+    <com.github.sundeepk.compactcalendarview.CompactCalendarView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/compactcalendar_view"
+        android:layout_width="fill_parent"
+        android:layout_height="250dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        app:compactCalendarBackgroundColor="#D81B60"
+        app:compactCalendarCurrentDayBackgroundColor="#B71C1C"
+        app:compactCalendarCurrentSelectedDayBackgroundColor="#33d993"
+        app:compactCalendarMultiEventIndicatorColor="#fff"
+        app:compactCalendarTargetHeight="250dp"
+        app:compactCalendarTextColor="#fff"
+        app:compactCalendarTextSize="12sp" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="14dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/ic_baseline_date_range_24px" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="39dp"
+        android:layout_marginTop="-29dp"
+        android:text="2019/01/06"
+        android:textSize="24sp" />
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="20dp"
+        android:background="?android:attr/listDivider" />
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="369dp"
+        android:layout_height="63dp"
+        android:layout_marginLeft="37dp">
+
+        <AutoCompleteTextView
+            android:id="@+id/Description"
+            android:layout_width="266dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:hint="Description"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <View
+        android:id="@+id/divider3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+    <Button
+        android:id="@+id/buttonConfirm"
+
+        android:layout_width="39dp"
+        android:layout_height="39dp"
+        android:layout_marginLeft="310dp"
+        android:layout_marginTop="-52dp"
+        android:background="@drawable/ic_baseline_check_circle_24px" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="-34dp"
+        android:background="@drawable/ic_baseline_title_24px" />
+
+
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_calender"
+        android:icon="@drawable/ic_baseline_calendar_today_24px"
+        android:title="Calender" />
+
+    <item
+        android:id="@+id/navigation_vrtualnav"
+        android:icon="@drawable/ic_baseline_navigation_24px"
+        android:title="Navigation" />
+
+    <item
+        android:id="@+id/navigation_messenger"
+        android:icon="@drawable/ic_baseline_chat_24px"
+        android:title="Messenger" />
+    <item
+        android:id="@+id/navigation_food"
+        android:icon="@drawable/ic_baseline_fastfood_24px"
+        android:title="Food" />
+
+
+</menu>

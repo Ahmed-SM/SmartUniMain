@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="350dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:background="#3498DB"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/dialogName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="90dp"
+            android:text="Pick a Date"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/monthyear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2019"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <com.github.sundeepk.compactcalendarview.CompactCalendarView xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/compactcalendar"
+            android:layout_width="fill_parent"
+            android:layout_height="250dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            app:compactCalendarBackgroundColor="#3498DB"
+            app:compactCalendarCurrentDayBackgroundColor="#B71C1C"
+            app:compactCalendarCurrentSelectedDayBackgroundColor="#33d993"
+            app:compactCalendarMultiEventIndicatorColor="#fff"
+            app:compactCalendarTargetHeight="250dp"
+            app:compactCalendarTextColor="#fff"
+            app:compactCalendarTextSize="12sp" />
+
+
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="0dp"
+                >
+
+                <AutoCompleteTextView
+                    android:id="@+id/input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Pass"
+                    android:imeOptions="actionDone"
+                    android:inputType="textPassword"
+                    android:elevation="0dp"
+                    />
+
+            </android.support.design.widget.TextInputLayout>
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/addbutton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:text="Add"
+
+            />
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:padding="10dp"
+        android:src="@drawable/ic_add_circle_outline_black_200dp" />
+
+
+</RelativeLayout>

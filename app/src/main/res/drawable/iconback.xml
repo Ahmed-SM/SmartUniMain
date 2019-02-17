@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <foreground android:color="#000000" />
+    <background android:drawable="@drawable/ic_baseline_keyboard_backspace_24px" />
+</adaptive-icon>
