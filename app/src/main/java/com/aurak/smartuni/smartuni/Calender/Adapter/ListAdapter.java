@@ -27,8 +27,10 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     public ListAdapter(List<ListItem> listItems, Context context) {
         setHasStableIds(true);
+
         this.listItems = listItems;
         this.context = context;
+
     }
 
 
@@ -59,14 +61,22 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
                 Toast.makeText(context, "Test Click" + String.valueOf(viewHold.getAdapterPosition()), Toast.LENGTH_SHORT).show();
                 dialog.show();
 
-                deletedEvent();
+
             }
         });
+
+
         return new ViewHolder(v);
+
     }
 
-    private void deletedEvent() {
-
+    public void deletedEvent(int position) {
+        listItems.remove(position);
+        notifyItemRemoved(position);
+    }
+    private void restoreItem(ListItem item,int position) {
+        listItems.add(position,item);
+        notifyItemInserted(position);
     }
 
     @Override
@@ -92,10 +102,12 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         return position;
     }
 
+
     public class ViewHolder extends RecyclerView.ViewHolder{
-        private LinearLayout eventpopup;
+        public LinearLayout eventpopup;
         public TextView textViewHead;
         public TextView textViewDesc;
+        //public LinearLayout viewForeground;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -103,6 +115,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             eventpopup = itemView.findViewById(R.id.list_item);
             textViewHead = itemView.findViewById(R.id.textViewHead);
             textViewDesc = itemView.findViewById(R.id.textViewDesc);
+            //viewForeground = itemView.findViewById(R.id.view_foreground);
 
         }
     }
@@ -117,5 +130,14 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     public void setListItems(List<ListItem> listItems) {
         this.listItems = listItems;
+    }
+
+    public void clear() {
+        if (listItems.size() > 0) {
+            final int size = listItems.size();
+            listItems.clear();
+            notifyItemRangeRemoved(0, size);
+        }
+
     }
 }

@@ -10,9 +10,7 @@ public class Events {
     private Events() {
 
     }
-    public static void Initialize(){
-        events = new ArrayList<>();
-    }
+
 
     public static ArrayList<Event> getEvents() {
         return events;
@@ -20,5 +18,11 @@ public class Events {
 
     public static void setEvents(Event recivedevents) {
         events.add(recivedevents);
+    }
+
+    public static void clear() {
+        if (events.size() > 0) {
+            events.clear();
+        }
     }
 }

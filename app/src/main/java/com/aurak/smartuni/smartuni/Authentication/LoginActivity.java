@@ -95,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
                 public void onSuccess(int statusCode, Header[] headers, JSONObject  response) {
                     super.onSuccess(statusCode, headers, response);
                     try {
-                        Toast.makeText(LoginActivity.this, "صاااح :) " + response.getString("username") +statusCode, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "صح :) " + response.getString("username") +statusCode, Toast.LENGTH_SHORT).show();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

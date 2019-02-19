@@ -7,22 +7,25 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.Calender.Adapter.ListAdapter;
+import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerItemTouchHelperListener;
+import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerTouchHelper;
 import com.aurak.smartuni.smartuni.Calender.Events;
 import com.aurak.smartuni.smartuni.Calender.ListItem;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
@@ -35,6 +38,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,9 +47,18 @@ import java.util.List;
 import java.util.Locale;
 
 import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.StringEntity;
 
+/*Issues log
+        - I had issue with displaying events that are requested from the server
+        - At this comment i have reversed some changes that caused the adapter to not work
+        - At This comment i have fix the repetition issue and successfully added events from the front end to the back end.
+        - Date are used instead of description
+        - ((ListAdapter) adapter). to access methods
+
+ */
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, RecyclerItemTouchHelperListener {
         BottomNavigationView bottomNavigation;
         FloatingActionButton btn;
         private RecyclerView recyclerView;
@@ -59,10 +72,14 @@ public class HomeActivity extends AppCompatActivity
         private ArrayList<String> listOfDate;
         private CompactCalendarView calendarView;
 
-         //TextView textView3;
-         //TextView textView5;
-        // TextView buttonBack;
+
+        private StringEntity jsonEntity;
+        private AsyncHttpClient client;
+        private static boolean clientUpdated = false;
+
+
          Button buttonConfirm;
+        AutoCompleteTextView input;
          Date dateToAdd;
          boolean doubleClick = false;
          String holdDate;
@@ -82,65 +99,47 @@ public class HomeActivity extends AppCompatActivity
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
         setContentView(R.layout.activity_home);
-
-
-        final AsyncHttpClient client = new AsyncHttpClient(); //import the public server certificate into your default keystore
-        client.setSSLSocketFactory(MySSLSocketFactory.getFixedSocketFactory());
-        client.addHeader("Accept", "application/json");
-
-        client.addHeader("Content-Type", "application/json");
-        client.addHeader("Authorization", "Basic Og==");
-
-        listOfDate = new ArrayList<>();
-        attemptFetch(client);
-
-
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView2 = findViewById(R.id.recyclerView2);
         bottomNavigation = findViewById(R.id.navigationView);
-
         btn = findViewById(R.id.button2);
-
-        recyclerView.setHasFixedSize(true);
-        recyclerView2.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView2.setLayoutManager(new LinearLayoutManager(this));
-        listItems = new ArrayList<>();
-        listItems2 = new ArrayList<>();
-
-
-
-        events = Events.getEvents();
-        if (events != null && events.size() != 0){
-            for (Event item : events) {
-                ListItem listItem = new ListItem(
-                        item.getTimeInMillis(),
-                        item.getData().toString()
-                );
-                listItems.add(listItem);
-            }
-            adapter = new ListAdapter(listItems, this);
-            recyclerView.setAdapter(adapter);
-
-        }
-        else{
-            listItems.add(new ListItem(System.currentTimeMillis()+10000000l,"No Events"));
-            adapter = new ListAdapter(listItems, this);
-            recyclerView.setAdapter(adapter);
-            listItems2.add(new ListItem(System.currentTimeMillis(),"No Events"));
-            adapter2 = new ListAdapter(listItems2, this);
-            recyclerView2.setAdapter(adapter2);
-        }
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        jsonEntity = null;
+        client = new AsyncHttpClient(); //import the public server certificate into your default keystore
+        client.setSSLSocketFactory(MySSLSocketFactory.getFixedSocketFactory());
+        client.addHeader("Accept", "application/json");
+        client.addHeader("Content-Type", "application/json");
+        client.addHeader("Authorization", "Basic Og==");
+
+        listOfDate = new ArrayList<>();
+        listItems = new ArrayList<>();
+        listItems2 = new ArrayList<>();
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setHasFixedSize(true);
+        recyclerView2.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView2.setLayoutManager(new LinearLayoutManager(this));
+
+        if (clientUpdated == false) {
+                attemptFetch(client);
+        }
+
+        ItemTouchHelper.SimpleCallback itemTouchHelperCallBack
+                = new RecyclerTouchHelper(0, ItemTouchHelper.LEFT, this);
+        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView);
+        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView2);
+
+        displayEvents();
 
 
 
@@ -150,6 +149,7 @@ public class HomeActivity extends AppCompatActivity
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(HomeActivity.this);
                 View mView = getLayoutInflater().inflate(R.layout.event_add, null);
                 buttonConfirm = mView.findViewById(R.id.addbutton);
+                input = mView.findViewById(R.id.input);
                 initCalender(mView);
 
             mBuilder.setView(mView);
@@ -164,9 +164,6 @@ public class HomeActivity extends AppCompatActivity
 
 
         });
-
-
-
 
         bottomNavigation.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -193,6 +190,31 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
+    private void displayEvents() {
+
+        events = Events.getEvents();
+        if (events != null && events.size() != 0){
+            for (Event item : events) {
+                ListItem listItem = new ListItem(
+                        item.getTimeInMillis(),
+                        item.getData().toString()
+                );
+                listItems.add(listItem);
+            }
+            adapter = new ListAdapter(listItems, this);
+            recyclerView.setAdapter(adapter);
+
+        }
+        else{
+            listItems.add(new ListItem(System.currentTimeMillis()+10000000l,"No Events"));
+            adapter = new ListAdapter(listItems, this);
+            recyclerView.setAdapter(adapter);
+            listItems2.add(new ListItem(System.currentTimeMillis(),"No Events"));
+            adapter2 = new ListAdapter(listItems2, this);
+            recyclerView2.setAdapter(adapter2);
+        }
+    }
+
     private void initCalender(View mView) {
 
         calendarView = mView.findViewById(R.id.compactcalendar);
@@ -202,7 +224,7 @@ public class HomeActivity extends AppCompatActivity
         calendarView.setListener(new CompactCalendarView.CompactCalendarViewListener() {
             @Override
             public void onDayClick(Date dateClicked) {
-                String date = new SimpleDateFormat("yyyy-MM-dd").format(dateClicked);
+                final String date = new SimpleDateFormat("yyyy-MM-dd").format(dateClicked);
 
                 if (doubleClick == true){
                     if (date.compareTo(holdDate) == 0 && calendarView.getEvents(dateClicked).size() > 0) {
@@ -223,7 +245,10 @@ public class HomeActivity extends AppCompatActivity
                                     "test");
                             calendarView.addEvent(ev);
                             //autoCompleteTextView.setText("");
-                            Events.setEvents(ev);
+                            //Events.setEvents(ev);
+                            attemptToPost(client,jsonEntity, dateToAdd.toString(), input.getText().toString());
+                            clientUpdated = false;
+                            Events.clear();
                             startActivity(getIntent());
                        // }
                     }
@@ -299,7 +324,7 @@ public class HomeActivity extends AppCompatActivity
 
     private void attemptFetch(AsyncHttpClient client) {
 
-        client.get("https://10.0.2.2:5001/api/users/1", new JsonHttpResponseHandler(){
+        client.get("https://10.0.2.2:5001/api/Events", new JsonHttpResponseHandler(){
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 super.onSuccess(statusCode, headers, response);
@@ -320,6 +345,13 @@ public class HomeActivity extends AppCompatActivity
                         fetchDates();
 
                     }
+
+                    if( clientUpdated != true ) {
+
+                        clientUpdated = true;
+                        startActivity(getIntent());
+                    }
+
                 }
 
             @Override
@@ -359,4 +391,59 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+    private void attemptToPost(AsyncHttpClient client, StringEntity jsonEntity, String date, String desciption ) {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("date", date);
+            jsonParams.put("description", desciption);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            jsonEntity = new StringEntity(jsonParams.toString());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        client.post(null, "https://10.0.2.2:5001/api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        super.onSuccess(statusCode, headers, response);
+
+                            Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+
+                            clientUpdated = false;
+
+
+                    }
+                     @Override
+                     public void onFinish() {
+                        super.onFinish();
+                            Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
+                            clientUpdated = false;
+
+                    }
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                        super.onFailure(statusCode, headers, throwable, errorResponse);
+
+                        Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+                    }
+
+
+
+
+                });
+    }
+
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
+        if(viewHolder instanceof  ListAdapter.ViewHolder){
+            ListItem item = listItems.get(viewHolder.getAdapterPosition());
+            ((ListAdapter) adapter).deletedEvent(viewHolder.getAdapterPosition());
+
+
+        }
+    }
 }
