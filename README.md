@@ -1,5 +1,5 @@
 # SmartUniMain
 
-No login or registration needed at moment 
+No login or registration needed at the moment 
 
 
