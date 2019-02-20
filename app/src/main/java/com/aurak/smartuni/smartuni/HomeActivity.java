@@ -49,6 +49,8 @@ import java.util.Locale;
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
 
+
+
 /*Issues log
         - I had issue with displaying events that are requested from the server
         - At this comment i have reversed some changes that caused the adapter to not work
@@ -67,6 +69,8 @@ public class HomeActivity extends AppCompatActivity
         private RecyclerView.Adapter adapter2;
         private List<ListItem> listItems;
         private List<ListItem> listItems2;
+        final static List<String> listOfId = new ArrayList<>();
+         List<String> listOfDec;
         static ArrayList<Event> events;
         private JSONArray jsonObjects;
         private ArrayList<String> listOfDate;
@@ -78,12 +82,13 @@ public class HomeActivity extends AppCompatActivity
         private static boolean clientUpdated = false;
 
 
+
          Button buttonConfirm;
         AutoCompleteTextView input;
          Date dateToAdd;
          boolean doubleClick = false;
          String holdDate;
-         AutoCompleteTextView autoCompleteTextView;
+
 
 
 
@@ -123,6 +128,8 @@ public class HomeActivity extends AppCompatActivity
         listOfDate = new ArrayList<>();
         listItems = new ArrayList<>();
         listItems2 = new ArrayList<>();
+        listOfDec = new ArrayList<>();
+
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setHasFixedSize(true);
@@ -198,6 +205,7 @@ public class HomeActivity extends AppCompatActivity
                 ListItem listItem = new ListItem(
                         item.getTimeInMillis(),
                         item.getData().toString()
+
                 );
                 listItems.add(listItem);
             }
@@ -240,11 +248,11 @@ public class HomeActivity extends AppCompatActivity
                     @Override
                     public void onClick(View v) {
                         if (input.length()> 1) {
-                        //SimpleDateFormat date2 = new SimpleDateFormat("yyyy-MM-dd");
-                            Event ev = new Event(Color.GREEN, dateToAdd.getTime(), //autoCompleteTextView.getText()
-                                    input.getText().toString());
+                           // SimpleDateFormat date2 = new SimpleDateFormat("yyyy-MM-dd").format(dateToAdd.toString()));
+                            Event ev = new Event(Color.GREEN,dateToAdd.getTime(), //autoCompleteTextView.getText()
+                                    input.getText());
                             calendarView.addEvent(ev);
-                            attemptToPost(client,jsonEntity, dateToAdd.toString(), input.getText().toString());
+                            attemptToPost(client,jsonEntity, holdDate, input.getText().toString());
                             clientUpdated = false;
                             Events.clear();
                             startActivity(getIntent());
@@ -329,16 +337,6 @@ public class HomeActivity extends AppCompatActivity
                 Toast.makeText(getApplicationContext(), response.toString(), Toast.LENGTH_SHORT).show();
                 jsonObjects = response;
 
-//                final Handler handler = new Handler();
-//                handler.postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (jsonObjects != null) {
-//                            fetchDates();
-//                        }
-//                    }
-//                }, 2000);
-
                     if (jsonObjects != null) {
                         fetchDates();
 
@@ -367,19 +365,22 @@ public class HomeActivity extends AppCompatActivity
         } );
     }
     private void fetchDates() {
+
         for (int i = 0; i< jsonObjects.length(); i++){
             try {
                 Toast.makeText(HomeActivity.this, jsonObjects.getJSONObject(i).getJSONObject("event").getString("date"), Toast.LENGTH_SHORT).show();
                 listOfDate.add(jsonObjects.getJSONObject(i).getJSONObject("event").getString("date"));
+                listOfId.add(jsonObjects.getJSONObject(i).getJSONObject("event").getString("id"));
+                listOfDec.add(jsonObjects.getJSONObject(i).getJSONObject("event").getString("description"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        for (String eventDate: listOfDate) {
+        for (int i = 0; i< listOfDate.size(); i++) {
 
             try {
-                Date dateToParse=new SimpleDateFormat("yyyy-MM-dd").parse(eventDate);
-                Event ev = new Event(Color.GREEN, dateToParse.getTime(), eventDate);
+                Date dateToParse=new SimpleDateFormat("yyyy-MM-dd").parse(listOfDate.get(i));
+                Event ev = new Event(Color.GREEN, dateToParse.getTime(),listOfDec.get(i));
                 Events.setEvents(ev);
 
                 Toast.makeText(getApplicationContext(), dateToParse.toString(), Toast.LENGTH_SHORT).show();
@@ -436,11 +437,25 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
+    public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if(viewHolder instanceof  ListAdapter.ViewHolder){
             ListItem item = listItems.get(viewHolder.getAdapterPosition());
             ((ListAdapter) adapter).deletedEvent(viewHolder.getAdapterPosition());
+            client.delete(null, String.format("https://10.0.2.2:5001/api/Events/%s", listOfId.get(viewHolder.getAdapterPosition()+1)),null,"application/json", new JsonHttpResponseHandler(){
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    super.onSuccess(statusCode, headers, response);
+                    Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+                    listOfId.remove(viewHolder.getAdapterPosition()+1);
 
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                    super.onFailure(statusCode, headers, throwable, errorResponse);
+                    Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+                }
+            });
 
         }
     }
