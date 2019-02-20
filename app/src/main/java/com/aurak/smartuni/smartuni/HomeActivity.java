@@ -52,7 +52,7 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 /*Issues log
         - I had issue with displaying events that are requested from the server
         - At this comment i have reversed some changes that caused the adapter to not work
-        - At This comment i have fix the repetition issue and successfully added events from the front end to the back end.
+        - At This comment i have fixed the repetition issue and successfully added events from the front end to the back end.
         - Date are used instead of description
         - ((ListAdapter) adapter). to access methods
 
@@ -239,18 +239,16 @@ public class HomeActivity extends AppCompatActivity
                 buttonConfirm.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        SimpleDateFormat date2 = new SimpleDateFormat("yyyy-MM-dd");
-                        //if (autoCompleteTextView.length()> 1) {
+                        if (input.length()> 1) {
+                        //SimpleDateFormat date2 = new SimpleDateFormat("yyyy-MM-dd");
                             Event ev = new Event(Color.GREEN, dateToAdd.getTime(), //autoCompleteTextView.getText()
-                                    "test");
+                                    input.getText().toString());
                             calendarView.addEvent(ev);
-                            //autoCompleteTextView.setText("");
-                            //Events.setEvents(ev);
                             attemptToPost(client,jsonEntity, dateToAdd.toString(), input.getText().toString());
                             clientUpdated = false;
                             Events.clear();
                             startActivity(getIntent());
-                       // }
+                       }
                     }
                 });
             }
