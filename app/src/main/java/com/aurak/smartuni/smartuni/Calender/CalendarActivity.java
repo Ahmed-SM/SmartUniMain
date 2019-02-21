@@ -132,7 +132,7 @@ public class CalendarActivity extends AppCompatActivity {
                             Event ev = new Event(Color.GREEN, dateToAdd.getTime(), autoCompleteTextView.getText());
                             calendarView.addEvent(ev);
                             autoCompleteTextView.setText("");
-                            Events.setEvents(ev);
+                            Events.setEvents(ev," ");
                         }
                             Activity activity = CalendarActivity.this;
                             View view = activity.getCurrentFocus();
@@ -176,7 +176,7 @@ public class CalendarActivity extends AppCompatActivity {
             try {
                 Date dateToParse=new SimpleDateFormat("yyyy-MM-dd").parse(eventDate);
                 Event ev = new Event(Color.GREEN, dateToParse.getTime(), eventDate);
-                Events.setEvents(ev);
+                Events.setEvents(ev, " ");
 
                 Toast.makeText(getApplicationContext(), dateToParse.toString(), Toast.LENGTH_SHORT).show();
             } catch (ParseException e) {

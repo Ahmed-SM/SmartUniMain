@@ -13,7 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aurak.smartuni.smartuni.Calender.ListItem;
+import com.aurak.smartuni.smartuni.Calender.Item;
 import com.aurak.smartuni.smartuni.R;
 
 import java.text.SimpleDateFormat;
@@ -21,11 +21,11 @@ import java.util.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
-    private List<ListItem> listItems;
+    private List<Item> listItems;
     private Context context;
     private Dialog dialog;
 
-    public ListAdapter(List<ListItem> listItems, Context context) {
+    public ListAdapter(List<Item> listItems, Context context) {
         setHasStableIds(true);
 
         this.listItems = listItems;
@@ -56,7 +56,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
                 monthYearPop.setText(" ");
                 if (listItems.size()>0) {
                     taskName.setText(listItems.get(viewHold.getAdapterPosition()+1).getDesc());
-                    monthYearPop.setText(listItems.get(viewHold.getAdapterPosition()+1).getTime().toString());
+                    monthYearPop.setText(listItems.get(viewHold.getAdapterPosition()+1).toString());
                 }
                 Toast.makeText(context, "Test Click" + String.valueOf(viewHold.getAdapterPosition()), Toast.LENGTH_SHORT).show();
                 dialog.show();
@@ -74,17 +74,22 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         listItems.remove(position);
         notifyItemRemoved(position);
     }
-    private void restoreItem(ListItem item,int position) {
+    private void restoreItem(Item item, int position) {
         listItems.add(position,item);
         notifyItemInserted(position);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ListAdapter.ViewHolder holder, int position) {
-        ListItem listItem = listItems.get(position);
+        Item item = listItems.get(position);
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        holder.textViewHead.setText(formatter.format(listItem.getTime()));
-        holder.textViewDesc.setText(listItem.getDesc());
+        if (formatter.format(item.getTime()).compareTo("0") == 0){
+            holder.textViewHead.setText(" ");
+        }
+        else {
+            holder.textViewHead.setText(formatter.format(item.getTime()));
+        }
+        holder.textViewDesc.setText(item.getDesc());
 
     }
 
@@ -124,12 +129,12 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
         notifyDataSetChanged();
     }
-    public List<ListItem> getListItems() {
+    public List<Item> getListItems() {
         return listItems;
     }
 
-    public void setListItems(List<ListItem> listItems) {
-        this.listItems = listItems;
+    public void setListItems(List<Item> items) {
+        this.listItems = items;
     }
 
     public void clear() {

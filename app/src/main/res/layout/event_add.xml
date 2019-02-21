@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/addLayout"
     android:layout_width="350dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center">
@@ -49,33 +50,39 @@
             app:compactCalendarTextSize="12sp" />
 
 
-        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <View
+            android:id="@+id/divider11"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
 
-            <android.support.design.widget.TextInputLayout
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/inputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/addLayout"
+            android:layout_marginTop="-40dp"
+            android:hint="Desc"
+            android:paddingBottom="10dp"
+            android:visibility="visible">
+
+            <AutoCompleteTextView
+                android:id="@+id/input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:elevation="0dp"
-                >
+                android:layout_below="@+id/addLayout"
+                android:hint="Description"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:visibility="visible" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/input"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:elevation="0dp"
-                    android:hint="Pass"
-                    android:imeOptions="actionDone"
-                    android:inputType="text" />
-
-            </android.support.design.widget.TextInputLayout>
-        </FrameLayout>
+        </android.support.design.widget.TextInputLayout>
 
         <Button
             android:id="@+id/addbutton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/white"
+            android:layout_height="70dp"
+            android:background="#f8f8ff"
             android:text="Add"
 
             />
