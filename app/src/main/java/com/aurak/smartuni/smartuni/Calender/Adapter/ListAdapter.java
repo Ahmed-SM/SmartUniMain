@@ -83,13 +83,15 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ListAdapter.ViewHolder holder, int position) {
         Item item = listItems.get(position);
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        if (formatter.format(item.getTime()).compareTo("0") == 0){
-            holder.textViewHead.setText(" ");
+        if (item.getTime() == 0){
+            holder.textViewHead.setText(item.getDesc());
+            holder.textViewDesc.setText(" ");
         }
         else {
             holder.textViewHead.setText(formatter.format(item.getTime()));
+            holder.textViewDesc.setText(item.getDesc());
         }
-        holder.textViewDesc.setText(item.getDesc());
+
 
     }
 

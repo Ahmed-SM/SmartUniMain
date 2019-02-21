@@ -66,10 +66,13 @@ public class HomeActivity extends AppCompatActivity
         FloatingActionButton btn;
         private RecyclerView recyclerView;
         private RecyclerView recyclerView2;
+        private RecyclerView recyclerView3;
         private RecyclerView.Adapter adapter;
         private RecyclerView.Adapter adapter2;
+        private RecyclerView.Adapter adapter3;
         private List<Item> listItems;
         private List<Item> listItems2;
+        private List<Item> listItems3;
         final static List<String> listOfId = new ArrayList<>();
          List<String> listOfDec;
         static Pair<ArrayList<Event>,ArrayList<String>> events;
@@ -107,6 +110,7 @@ public class HomeActivity extends AppCompatActivity
         setContentView(R.layout.activity_home);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView2 = findViewById(R.id.recyclerView2);
+        recyclerView3 = findViewById(R.id.recyclerView3);
         bottomNavigation = findViewById(R.id.navigationView);
         btn = findViewById(R.id.button2);
 
@@ -129,14 +133,18 @@ public class HomeActivity extends AppCompatActivity
         listOfDate = new ArrayList<>();
         listItems = new ArrayList<>();
         listItems2 = new ArrayList<>();
+        listItems3 = new ArrayList<>();
         listOfDec = new ArrayList<>();
 
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setHasFixedSize(true);
         recyclerView2.setHasFixedSize(true);
+        recyclerView3.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView3.setLayoutManager(new LinearLayoutManager(this));
+
 
         if (clientUpdated == false) {
                 attemptFetch(client);
@@ -146,6 +154,7 @@ public class HomeActivity extends AppCompatActivity
                 = new RecyclerTouchHelper(0, ItemTouchHelper.LEFT, this);
         new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView);
         new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView2);
+        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView3);
 
         displayEvents();
 
@@ -202,23 +211,24 @@ public class HomeActivity extends AppCompatActivity
     private void displayEvents() {
 
         events = Events.getEvents();
-        int i = 0;
-        if (events != null && events.first.size() > 0 && events.second.size() > 0){
-            for (Event item : events.first) {
 
-                Item listItem = new Item(
-                        item.getTimeInMillis(),
-                        item.getData().toString(),
-                        events.second.get(i)
-                );
-                i++;
-                listItems.add(listItem);
+        if (events != null){
+            if ( events.first.size() > 0 && events.second.size() > 0){
+                int i = 0;
+                for (Event item : events.first) {
+
+                    Item listItem = new Item(
+                            item.getTimeInMillis(),
+                            item.getData().toString(),
+                            events.second.get(i)
+                    );
+                    i++;
+                    listItems3.add(listItem);
+                }
+                adapter3 = new ListAdapter(listItems3, this);
+                recyclerView3.setAdapter(adapter3);
             }
-            adapter = new ListAdapter(listItems, this);
-            recyclerView.setAdapter(adapter);
 
-        }
-        else{
             Item listItem = new Item(
                     0,
                     "No Events",
@@ -230,7 +240,13 @@ public class HomeActivity extends AppCompatActivity
             listItems2.add(listItem);
             adapter2 = new ListAdapter(listItems2, this);
             recyclerView2.setAdapter(adapter2);
+            listItems3.add(listItem);
+            adapter3 = new ListAdapter(listItems3, this);
+            recyclerView3.setAdapter(adapter3);
+
+
         }
+
     }
 
     private void initCalender(View mView) {
@@ -356,6 +372,7 @@ public class HomeActivity extends AppCompatActivity
                             startActivity(getIntent());
                         }
                     }
+
 
                 }
 
