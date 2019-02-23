@@ -73,6 +73,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public void deletedEvent(int position) {
         listItems.remove(position);
         notifyItemRemoved(position);
+        notifyItemRangeChanged(position, listItems.size());
     }
     private void restoreItem(Item item, int position) {
         listItems.add(position,item);

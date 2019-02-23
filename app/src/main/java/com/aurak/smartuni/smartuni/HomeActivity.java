@@ -223,10 +223,10 @@ public class HomeActivity extends AppCompatActivity
                             events.second.get(i)
                     );
                     i++;
-                    listItems3.add(listItem);
+                    listItems.add(listItem);
                 }
-                adapter3 = new ListAdapter(listItems3, this);
-                recyclerView3.setAdapter(adapter3);
+                adapter = new ListAdapter(listItems, this);
+                recyclerView.setAdapter(adapter);
             }
 
             Item listItem = new Item(
@@ -467,6 +467,8 @@ public class HomeActivity extends AppCompatActivity
         if(viewHolder instanceof  ListAdapter.ViewHolder){
             Item item = listItems.get(viewHolder.getAdapterPosition());
             ((ListAdapter) adapter).deletedEvent(viewHolder.getAdapterPosition());
+            recyclerView.removeViewAt(position);
+            if ( item.id.equals("No Event") == true) return;
             client.delete(null, String.format("https://10.0.2.2:5001/api/Events/%s", item.id) ,null,"application/json", new JsonHttpResponseHandler(){
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
