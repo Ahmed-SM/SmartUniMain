@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.aurak.smartuni.smartuni.Calender.Item;
 import com.aurak.smartuni.smartuni.R;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
@@ -24,11 +23,23 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private List<Item> listItems;
     private Context context;
     private Dialog dialog;
+    private ListAdapter.ViewHolder holderInstance;
+    private RecyclerView recyclerView;
 
-    public ListAdapter(List<Item> listItems, Context context) {
+
+    public ListAdapter(List<Item> listItems, Context context, RecyclerView recyclerView) {
         setHasStableIds(true);
 
+        this.recyclerView = recyclerView;
         this.listItems = listItems;
+        if(listItems.isEmpty()) {
+            Item listItem = new Item(
+                    "No Events",
+                    " ",
+                    "No Event"
+            );
+            listItems.add(listItem);
+        }
         this.context = context;
 
     }
@@ -70,10 +81,19 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     }
 
-    public void deletedEvent(int position) {
-        listItems.remove(position);
-        notifyItemRemoved(position);
+    public void deletedEvent( int position) {
+        if (position == 0 && !(listItems.size()>1)){
+            if (!listItems.get(position).id.equals("No Event")) {
+                Item item = new Item("No Events", " ", "No Event");
+                listItems.set(position,item);
+                return;
+            }
+        }else {
+            listItems.remove(position);
+            notifyItemRemoved(position);
+        }
         notifyItemRangeChanged(position, listItems.size());
+
     }
     private void restoreItem(Item item, int position) {
         listItems.add(position,item);
@@ -82,17 +102,12 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ListAdapter.ViewHolder holder, int position) {
-        Item item = listItems.get(position);
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        if (item.getTime() == 0){
-            holder.textViewHead.setText(item.getDesc());
-            holder.textViewDesc.setText(" ");
-        }
-        else {
-            holder.textViewHead.setText(formatter.format(item.getTime()));
-            holder.textViewDesc.setText(item.getDesc());
-        }
+        holderInstance = holder;
 
+            Item item = listItems.get(position);
+            holder.textViewHead.setText(item.getTime());
+            holder.textViewDesc.setText(item.getDesc());
+            holder.recyclerView=recyclerView;
 
     }
 
@@ -113,6 +128,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         public LinearLayout eventpopup;
+        public RecyclerView recyclerView;
         public TextView textViewHead;
         public TextView textViewDesc;
         //public LinearLayout viewForeground;
@@ -123,6 +139,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             eventpopup = itemView.findViewById(R.id.list_item);
             textViewHead = itemView.findViewById(R.id.textViewHead);
             textViewDesc = itemView.findViewById(R.id.textViewDesc);
+            RecyclerView recyclerView = getRecyclerView();
             //viewForeground = itemView.findViewById(R.id.view_foreground);
 
         }
@@ -141,11 +158,25 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     }
 
     public void clear() {
-        if (listItems.size() > 0) {
+        if (!this.listItems.isEmpty()) {
             final int size = listItems.size();
             listItems.clear();
             notifyItemRangeRemoved(0, size);
         }
+    }
+
+    public RecyclerView getRecyclerView() {
+        return recyclerView;
+    }
+
+    public void setRecyclerView(RecyclerView recyclerView) {
+        this.recyclerView = recyclerView;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.recyclerView = recyclerView;
 
     }
 }

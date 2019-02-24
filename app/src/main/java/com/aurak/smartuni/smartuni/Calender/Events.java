@@ -36,6 +36,7 @@ public class Events {
     public static void clear() {
         if (events.size() > 0) {
             events.clear();
+            id.clear();
         }
     }
 }

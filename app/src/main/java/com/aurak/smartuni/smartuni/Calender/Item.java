@@ -1,25 +1,25 @@
 package com.aurak.smartuni.smartuni.Calender;
 
 public class Item {
-    public  long time;
-    public  String desc;
+    private   String time;
+    private  String desc;
     public String id;
 
 
 
-    public Item(long time, String desc, String id) {
+    public Item(String time, String desc, String id) {
         this.time = time;
         this.desc = desc;
         this.id = id;
 
     }
-    public Item(long time, String desc ) {
+    public Item(String time, String desc ) {
         this.time = time;
         this.desc = desc;
 
     }
 
-    public  long getTime() {
+    public  String getTime() {
         return time;
     }
 
@@ -27,8 +27,19 @@ public class Item {
         return desc;
     }
 
+    public void setTime(String time) {
+        this.time = time;
+    }
 
-    //public String getId() {
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+//public String getId() {
        // return id;
    // }
 }
