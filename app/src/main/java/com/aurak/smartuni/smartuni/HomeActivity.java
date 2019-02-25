@@ -83,7 +83,7 @@ public class HomeActivity extends AppCompatActivity
 
 
     private StringEntity jsonEntity;
-    private AsyncHttpClient client;
+    public AsyncHttpClient client;
     private static boolean clientUpdated = false;
 
 
@@ -467,6 +467,50 @@ public class HomeActivity extends AppCompatActivity
 
 
                 });
+    }
+    public void attemptToUpdate(String id, String date, String desciption ) {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("id", Integer.parseInt(id));
+            jsonParams.put("date", date);
+            jsonParams.put("description", desciption);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            jsonEntity = new StringEntity(jsonParams.toString());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        client.put(null, "https://10.0.2.2:5001/api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                super.onSuccess(statusCode, headers, response);
+
+                Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+
+                clientUpdated = false;
+
+
+            }
+            @Override
+            public void onFinish() {
+                super.onFinish();
+                Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
+                clientUpdated = false;
+
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+
+                Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
     }
 
     @Override

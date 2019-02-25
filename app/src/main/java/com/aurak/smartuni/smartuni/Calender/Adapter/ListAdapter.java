@@ -9,14 +9,20 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.Calender.Item;
+import com.aurak.smartuni.smartuni.HomeActivity;
 import com.aurak.smartuni.smartuni.R;
 
 import java.util.List;
+
+
+
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
@@ -61,19 +67,28 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         viewHold.eventpopup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final TextView taskName = dialog.findViewById(R.id.taskName);
-                final TextView monthYearPop = dialog.findViewById(R.id.monthyearpop);
+                final EditText taskName = dialog.findViewById(R.id.taskName);
+                final EditText monthYearPop = dialog.findViewById(R.id.monthyearpop);
+                Button editButton = dialog.findViewById(R.id.Editbutton);
                 taskName.setText("No event");
                 monthYearPop.setText(" ");
-                if (listItems.size()>0) {
+                if (taskName.getText().equals("No event")) {
                     taskName.setText(listItems.get(viewHold.getAdapterPosition()+1).getDesc());
-                    monthYearPop.setText(listItems.get(viewHold.getAdapterPosition()+1).toString());
+                    monthYearPop.setText(listItems.get(viewHold.getAdapterPosition()+1).getTime());
                 }
-                Toast.makeText(context, "Test Click" + String.valueOf(viewHold.getAdapterPosition()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Test Click" + String.valueOf(viewHold.getAdapterPosition()+1), Toast.LENGTH_SHORT).show();
                 dialog.show();
 
-
+                editButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((HomeActivity)context).attemptToUpdate(listItems.get(viewHold.getAdapterPosition()+1).id,
+                                monthYearPop.getText().toString(),
+                                taskName.getText().toString());
+                    }
+                });
             }
+
         });
 
 
