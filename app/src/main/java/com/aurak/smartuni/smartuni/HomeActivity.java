@@ -1,9 +1,11 @@
 package com.aurak.smartuni.smartuni;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
@@ -22,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.Calender.Adapter.ListAdapter;
@@ -29,6 +32,7 @@ import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerItemTouchHelperListe
 import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerTouchHelper;
 import com.aurak.smartuni.smartuni.Calender.Events;
 import com.aurak.smartuni.smartuni.Calender.Item;
+import com.aurak.smartuni.smartuni.Share.UploadActivity;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
 import com.loopj.android.http.AsyncHttpClient;
@@ -43,7 +47,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -51,13 +54,8 @@ import java.util.Locale;
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
 
-
-
 /*Issues log
-        - I had issue with displaying events that are requested from the server
-        - At this comment i have reversed some changes that caused the adapter to not work
-        - At This comment i have fixed the repetition issue and successfully added events from the front end to the back end.
-        - Date are used instead of description
+
         - ((ListAdapter) adapter). to access methods
 
  */
@@ -65,6 +63,7 @@ public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RecyclerItemTouchHelperListener {
     BottomNavigationView bottomNavigation;
     FloatingActionButton btn;
+    public final String BackEndURL = "https://3lsx7bnlub.execute-api.eu-central-1.amazonaws.com/Prod/";
     private RecyclerView recyclerView;
     private RecyclerView recyclerView2;
     private RecyclerView recyclerView3;
@@ -80,6 +79,8 @@ public class HomeActivity extends AppCompatActivity
     private JSONArray jsonObjects;
     private ArrayList<String> listOfDate;
     private CompactCalendarView calendarView;
+    private TextView numberOfEvents;
+    private AlertDialog dialog;
 
 
     private StringEntity jsonEntity;
@@ -101,7 +102,7 @@ public class HomeActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setContentView(R.layout.activity_home);
         String languageToLoad = "en";
         Locale locale = new Locale(languageToLoad);
         Locale.setDefault(locale);
@@ -109,10 +110,9 @@ public class HomeActivity extends AppCompatActivity
         config.locale = locale;
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
-        setContentView(R.layout.activity_home);
+
         recyclerView = findViewById(R.id.recyclerView);
-        recyclerView2 = findViewById(R.id.recyclerView2);
-        recyclerView3 = findViewById(R.id.recyclerView3);
+        numberOfEvents = findViewById(R.id.textView5);
         bottomNavigation = findViewById(R.id.navigationView);
         btn = findViewById(R.id.button2);
 
@@ -128,35 +128,45 @@ public class HomeActivity extends AppCompatActivity
         jsonEntity = null;
         client = new AsyncHttpClient(); //import the public server certificate into your default keystore
         client.setSSLSocketFactory(MySSLSocketFactory.getFixedSocketFactory());
+
         client.addHeader("Accept", "application/json");
         client.addHeader("Content-Type", "application/json");
         client.addHeader("Authorization", "Basic Og==");
 
-        listOfDate = new ArrayList<>();
-        listOfDec = new ArrayList<>();
-        listOfId = new ArrayList<>();
+
 
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setHasFixedSize(true);
-        recyclerView2.setHasFixedSize(true);
-        recyclerView3.setHasFixedSize(true);
+//        recyclerView2.setHasFixedSize(true);
+//        recyclerView3.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView2.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView3.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView2.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView3.setLayoutManager(new LinearLayoutManager(this));
 
 
         if (clientUpdated == false) {
             attemptFetch(client);
         }
+        displayEvents();
 
         ItemTouchHelper.SimpleCallback itemTouchHelperCallBack
                 = new RecyclerTouchHelper(0, ItemTouchHelper.LEFT, this);
         new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView);
-        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView2);
-        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView3);
+//        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView2);
+//        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView3);
 
-        displayEvents();
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (jsonObjects != null) {
+                    displayEvents();
+                }
+            }
+        }, 2000);
+
+
 
 
         btn.setOnClickListener(new View.OnClickListener() {
@@ -171,7 +181,7 @@ public class HomeActivity extends AppCompatActivity
 
                 mBuilder.setView(mView);
 
-                AlertDialog dialog = mBuilder.create();
+                dialog = mBuilder.create();
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
 
@@ -207,23 +217,18 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
-    private void displayEvents() {
+    public void displayEvents() {
+
         listItems = new ArrayList<>();
-        listItems2 = new ArrayList<>();
-        listItems3 = new ArrayList<>();
+
+
 
         events = Events.getEvents();
-
-        Calendar calendar = Calendar.getInstance();
-        Date today = calendar.getTime();
-        calendar.add(Calendar.DAY_OF_YEAR, 1);
-        Date tomorrow = calendar.getTime();
+        numberOfEvents.setText(String.valueOf(events.first.size())+ " Scheduled Dates");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
-        String todayAsString = formatter.format(today);
-        String tomorrowAsString = formatter.format(tomorrow);
-        Toast.makeText(this, todayAsString + "  :  "+ tomorrowAsString, Toast.LENGTH_LONG).show();
-
+        adapter = new ListAdapter(listItems, this,recyclerView);
+        recyclerView.setAdapter(adapter);
         if (events != null) {
             if (events.first.size() > 0 && events.second.size() > 0) {
                 int i = 0;
@@ -233,24 +238,11 @@ public class HomeActivity extends AppCompatActivity
                             item.getData().toString(),
                             events.second.get(i)
                     );
-                    if (listItem.getTime().equals(todayAsString)) {
-                        listItems2.add(listItem);
-                    } else if (listItem.getTime().equals(tomorrowAsString)) {
-                        listItems.add(listItem);
-                    } else {
-                        listItems3.add(listItem);
-                    }
+                    ((ListAdapter) adapter).restoreItem(listItem);
                     i++;
                 }
             }
         }
-
-        adapter = new ListAdapter(listItems, this,recyclerView3);
-        recyclerView.setAdapter(adapter);
-        adapter2 = new ListAdapter(listItems2, this,recyclerView3);
-        recyclerView2.setAdapter(adapter2);
-        adapter3 = new ListAdapter(listItems3, this, recyclerView3);
-        recyclerView3.setAdapter(adapter3);
         Events.clear();
 
     }
@@ -288,7 +280,20 @@ public class HomeActivity extends AppCompatActivity
                             attemptToPost(client,jsonEntity, holdDate, input.getText().toString());
                             clientUpdated = false;
                             Events.clear();
-                            startActivity(getIntent());
+                            dialog.dismiss();
+                            attemptFetch(client);
+                            ((ListAdapter) adapter).clear();
+                            ((ListAdapter) adapter).notifyDataSetChanged();
+                            recyclerView.removeAllViews();
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (jsonObjects != null) {
+                                        displayEvents();
+                                    }
+                                }
+                            }, 5000);
                        }
                     }
                 });
@@ -352,6 +357,8 @@ public class HomeActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_share) {
 
+            startActivity(new Intent(HomeActivity.this, UploadActivity.class));//todo sotorage activity
+
         } else if (id == R.id.nav_send) {
 
         }
@@ -362,8 +369,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void attemptFetch(AsyncHttpClient client) {
-
-        client.get("https://10.0.2.2:5001/api/Events", new JsonHttpResponseHandler(){
+        client.get(BackEndURL+"api/Events", new JsonHttpResponseHandler(){
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 super.onSuccess(statusCode, headers, response);
@@ -375,8 +381,8 @@ public class HomeActivity extends AppCompatActivity
 
                         if (clientUpdated != true) {
 
-                            clientUpdated = true;
-                            startActivity(getIntent());
+                            //clientUpdated = true;
+                            //startActivity(getIntent());
                         }
                     }
 
@@ -399,6 +405,9 @@ public class HomeActivity extends AppCompatActivity
     }
     private void fetchDates() {
         Events.clear();
+        listOfDate = new ArrayList<>();
+        listOfDec = new ArrayList<>();
+        listOfId = new ArrayList<>();
         for (int i = 0; i< jsonObjects.length(); i++){
             try {
                 Toast.makeText(HomeActivity.this, jsonObjects.getJSONObject(i).getJSONObject("event").getString("date"), Toast.LENGTH_SHORT).show();
@@ -438,7 +447,7 @@ public class HomeActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-        client.post(null, "https://10.0.2.2:5001/api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
+        client.post(null, BackEndURL+"api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         super.onSuccess(statusCode, headers, response);
@@ -449,6 +458,7 @@ public class HomeActivity extends AppCompatActivity
 
 
                     }
+
                      @Override
                      public void onFinish() {
                         super.onFinish();
@@ -461,12 +471,21 @@ public class HomeActivity extends AppCompatActivity
                         super.onFailure(statusCode, headers, throwable, errorResponse);
 
                         Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
+                        clientUpdated = false;
                     }
 
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+                Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
+            }
 
-
-
-                });
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                super.onFailure(statusCode, headers, responseString, throwable);
+                Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     public void attemptToUpdate(String id, String date, String desciption ) {
         JSONObject jsonParams = new JSONObject();
@@ -484,7 +503,7 @@ public class HomeActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-        client.put(null, "https://10.0.2.2:5001/api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
+        client.put(null, BackEndURL+"api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 super.onSuccess(statusCode, headers, response);
@@ -509,8 +528,8 @@ public class HomeActivity extends AppCompatActivity
                 Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
             }
 
-
         });
+        displayEvents();
     }
 
     @Override
@@ -521,7 +540,7 @@ public class HomeActivity extends AppCompatActivity
             ((ListAdapter) recyclerView.getAdapter()).deletedEvent(position);
             if ( item.id.equals("No Event") == true) return;
             recyclerView.removeViewAt(position);
-            client.delete(null, String.format("https://10.0.2.2:5001/api/Events/%s", item.id) ,null,"application/json", new JsonHttpResponseHandler(){
+            client.delete(null, String.format(BackEndURL+"api/Events/%s", item.id) ,null,"application/json", new JsonHttpResponseHandler(){
 
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {

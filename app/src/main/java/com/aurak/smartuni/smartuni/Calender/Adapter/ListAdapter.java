@@ -13,13 +13,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.Calender.Item;
 import com.aurak.smartuni.smartuni.HomeActivity;
 import com.aurak.smartuni.smartuni.R;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+
 
 
 
@@ -31,6 +34,8 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private Dialog dialog;
     private ListAdapter.ViewHolder holderInstance;
     private RecyclerView recyclerView;
+    private Item NoItem;
+
 
 
     public ListAdapter(List<Item> listItems, Context context, RecyclerView recyclerView) {
@@ -39,12 +44,12 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         this.recyclerView = recyclerView;
         this.listItems = listItems;
         if(listItems.isEmpty()) {
-            Item listItem = new Item(
+            NoItem = new Item(
                     "No Events",
                     " ",
                     "No Event"
             );
-            listItems.add(listItem);
+            listItems.add(NoItem);
         }
         this.context = context;
 
@@ -62,34 +67,6 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         dialog = new Dialog(context);
         dialog.setContentView(R.layout.event_pop);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-
-        viewHold.eventpopup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final EditText taskName = dialog.findViewById(R.id.taskName);
-                final EditText monthYearPop = dialog.findViewById(R.id.monthyearpop);
-                Button editButton = dialog.findViewById(R.id.Editbutton);
-                taskName.setText("No event");
-                monthYearPop.setText(" ");
-                if (taskName.getText().equals("No event")) {
-                    taskName.setText(listItems.get(viewHold.getAdapterPosition()+1).getDesc());
-                    monthYearPop.setText(listItems.get(viewHold.getAdapterPosition()+1).getTime());
-                }
-                Toast.makeText(context, "Test Click" + String.valueOf(viewHold.getAdapterPosition()+1), Toast.LENGTH_SHORT).show();
-                dialog.show();
-
-                editButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ((HomeActivity)context).attemptToUpdate(listItems.get(viewHold.getAdapterPosition()+1).id,
-                                monthYearPop.getText().toString(),
-                                taskName.getText().toString());
-                    }
-                });
-            }
-
-        });
 
 
         return new ViewHolder(v);
@@ -110,19 +87,74 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         notifyItemRangeChanged(position, listItems.size());
 
     }
-    private void restoreItem(Item item, int position) {
-        listItems.add(position,item);
-        notifyItemInserted(position);
+    public void restoreItem(Item item) {
+        Calendar calendar = Calendar.getInstance();
+        Date today = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_YEAR, 1);
+        Date tomorrow = calendar.getTime();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        String todayAsString = formatter.format(today);
+        String tomorrowAsString = formatter.format(tomorrow);
+        //Toast.makeText(this, todayAsString + "  :  "+ tomorrowAsString, Toast.LENGTH_LONG).show();
+
+        if (listItems.get(0).id.equals("No Event")) {
+            listItems.remove(0);
+        }
+
+        if (item.getTime().equals(todayAsString)) {
+            listItems.add(item);
+        } else if (item.getTime().equals(tomorrowAsString)) {
+            listItems.add(item);
+
+        } else {
+            listItems.add(item);
+        }
+
+        //listItems.add(position,item);
+        notifyItemInserted(listItems.indexOf(item));
+        notifyItemRangeChanged(listItems.indexOf(item), listItems.size());
+
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ListAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ListAdapter.ViewHolder holder, int position) {
         holderInstance = holder;
 
             Item item = listItems.get(position);
             holder.textViewHead.setText(item.getTime());
             holder.textViewDesc.setText(item.getDesc());
             holder.recyclerView=recyclerView;
+
+
+        holder.eventpopup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final EditText taskName = dialog.findViewById(R.id.taskName);
+                final EditText monthYearPop = dialog.findViewById(R.id.monthyearpop);
+                Button editButton = dialog.findViewById(R.id.Editbutton);
+                taskName.setText(" ");
+                monthYearPop.setText(" ");
+
+                //Toast.makeText(context, "Test Click" + String.valueOf(viewHold.getAdapterPosition()) + listItems.get(0).getDesc(), Toast.LENGTH_SHORT).show();
+
+                dialog.show();
+
+                taskName.setText(listItems.get(holder.getAdapterPosition()).getDesc());
+                monthYearPop.setText(listItems.get(holder.getAdapterPosition()).getTime());
+
+                editButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((HomeActivity)context).attemptToUpdate(listItems.get(holder.getAdapterPosition()).id,
+                                monthYearPop.getText().toString(),
+                                taskName.getText().toString());
+                        dialog.dismiss();
+                    }
+                });
+            }
+
+        });
 
     }
 
@@ -160,10 +192,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         }
     }
 
-    public void updateData() {
 
-        notifyDataSetChanged();
-    }
     public List<Item> getListItems() {
         return listItems;
     }

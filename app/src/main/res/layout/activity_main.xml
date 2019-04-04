@@ -42,7 +42,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:paddingLeft="50dp"
-        android:paddingTop="20dp"
         android:paddingRight="50dp"
         android:paddingBottom="50dp">
 
@@ -186,8 +185,7 @@
             android:layout_marginTop="16dp"
             android:background="@drawable/border2"
             android:text="Back"
-
-            />
+            android:textStyle="bold" />
 
     </LinearLayout>
 

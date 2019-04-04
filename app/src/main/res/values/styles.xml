@@ -9,7 +9,6 @@
         <item name="android:textColorHint">#FFF</item>
 
 
-
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
