@@ -11,35 +11,46 @@
         layout="@layout/content_home" />
 
     <android.support.design.widget.AppBarLayout
-        android:layout_height="200dp"
-        android:layout_width="match_parent"
-        android:gravity="center"
-        android:elevation="0dp"
         android:id="@+id/appBarId"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:fitsSystemWindows="true"
         >
 
-        <TextView
-            android:id="@+id/textView8"
+        <FrameLayout
+            android:id="@+id/appBarId2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:elevation="0dp"
-            android:fontFamily="sans-serif"
-            android:text="Featured Events"
-            android:textColor="@android:color/white"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            app:layout_anchor="@+id/appBarId"
-            app:layout_anchorGravity="bottom|center" />
+            android:layout_height="200dp">
 
-        <android.support.v7.widget.AppCompatImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:src="@drawable/ic_date_range_black_24dp"/>
+            <android.support.v7.widget.AppCompatImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_aurak" />
+
+            <TextView
+                android:id="@+id/textView8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="165dp"
+                android:layout_marginEnd="10dp"
+                android:alpha="0.9"
+                android:ellipsize="marquee"
+                android:fontFamily="sans-serif"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="AURAK Signs With Wayne State Home"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_anchor="@+id/appBarId" />
+
+        </FrameLayout>
 
 
     </android.support.design.widget.AppBarLayout>
+
 
     <!--<android.support.design.widget.TabLayout-->
         <!--android:id="@+id/tablayout_id"-->

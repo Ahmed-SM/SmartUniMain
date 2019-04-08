@@ -16,12 +16,27 @@
                             <entry key="launcher">
                               <value>
                                 <PersistentState>
+                                  <option name="children">
+                                    <map>
+                                      <entry key="foregroundImage">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="scalingPercent" value="101" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
+                                    </map>
+                                  </option>
                                   <option name="values">
                                     <map>
                                       <entry key="backgroundLayerName" value="ic_launcher_background2g" />
-                                      <entry key="foregroundImage" value="C:\Users\Administrator\Desktop\1502121671_1.gif" />
-                                      <entry key="foregroundLayerName" value="ic_launcher_foreground2g" />
-                                      <entry key="outputName" value="ic_launcher2g" />
+                                      <entry key="foregroundImage" value="C:\Users\Administrator\Desktop\AURAK-Signs-With-Wayne-State-home.jpg" />
+                                      <entry key="foregroundLayerName" value="ic_aurak" />
+                                      <entry key="outputName" value="aurak" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -52,7 +67,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/G:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/file/ic_file_upload_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/G:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_send_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -62,8 +77,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_file_upload_white_24dp" />
+                            <entry key="color" value="006564" />
+                            <entry key="outputName" value="ic_action_name" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="H:\baseline-keyboard_backspace-24px.svg" />
                           </map>

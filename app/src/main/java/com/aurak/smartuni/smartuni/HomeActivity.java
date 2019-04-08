@@ -32,6 +32,7 @@ import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerItemTouchHelperListe
 import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerTouchHelper;
 import com.aurak.smartuni.smartuni.Calender.Events;
 import com.aurak.smartuni.smartuni.Calender.Item;
+import com.aurak.smartuni.smartuni.Chat.StartActivity;
 import com.aurak.smartuni.smartuni.Share.UploadActivity;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
@@ -80,6 +81,7 @@ public class HomeActivity extends AppCompatActivity
     private ArrayList<String> listOfDate;
     private CompactCalendarView calendarView;
     private TextView numberOfEvents;
+    private TextView header;
     private AlertDialog dialog;
 
 
@@ -113,6 +115,8 @@ public class HomeActivity extends AppCompatActivity
 
         recyclerView = findViewById(R.id.recyclerView);
         numberOfEvents = findViewById(R.id.textView5);
+        header = findViewById(R.id.textView8);
+        header.setSelected(true);
         bottomNavigation = findViewById(R.id.navigationView);
         btn = findViewById(R.id.button2);
 
@@ -205,6 +209,7 @@ public class HomeActivity extends AppCompatActivity
                                 return true;
                             case R.id.navigation_messenger:
                                 setTitle("Chat");
+                                startActivity(new Intent(HomeActivity.this, StartActivity.class));
                                 return true;
                             case R.id.navigation_food:
                                 setTitle("Food");
@@ -293,7 +298,7 @@ public class HomeActivity extends AppCompatActivity
                                         displayEvents();
                                     }
                                 }
-                            }, 5000);
+                            }, 2000);
                        }
                     }
                 });
