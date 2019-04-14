@@ -64,7 +64,7 @@ public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RecyclerItemTouchHelperListener {
     BottomNavigationView bottomNavigation;
     FloatingActionButton btn;
-    public final String BackEndURL = "https://3lsx7bnlub.execute-api.eu-central-1.amazonaws.com/Prod/";
+    public final String BackEndURL = "https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/Prod/";
     private RecyclerView recyclerView;
     private RecyclerView recyclerView2;
     private RecyclerView recyclerView3;

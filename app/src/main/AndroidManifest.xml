@@ -76,7 +76,8 @@
         <activity
             android:name=".Chat.StartActivity"
             android:label="@string/title_activity_start"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
+        <activity android:name=".Share.FullViewActivity"></activity>
     </application>
 
 </manifest>

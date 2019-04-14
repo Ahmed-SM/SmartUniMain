@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,7 +20,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.R;
@@ -42,7 +40,6 @@ public class UploadActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST = 0;
     private static final int RESULT_LOAD_IMAGE = 1;
-    private ImageView imageView;
     public AsyncHttpClient client;
     private String picturePath;
     private File file;
@@ -54,6 +51,7 @@ public class UploadActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
+        setTitle("Share Center");
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && checkCallingOrSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
@@ -76,7 +74,10 @@ public class UploadActivity extends AppCompatActivity {
         final IRecyclerViewClickListerner listerner = new IRecyclerViewClickListerner() {
             @Override
             public void onClick(View view, int position) {
-                    // open download
+                   Intent i =  new Intent(getApplicationContext(), FullViewActivity.class);
+                   i.putExtra("IMAGES", images);
+                   i.putExtra("POSITION", position);
+                   startActivity(i);
             }
         };
 
@@ -89,7 +90,8 @@ public class UploadActivity extends AppCompatActivity {
 
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-        imageView = findViewById(R.id.imageView2);
+
+
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -121,7 +123,7 @@ public class UploadActivity extends AppCompatActivity {
                     int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
                     picturePath = cursor.getString(columnIndex);
                     cursor.close();
-                    imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+                    //imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
                     file = new File(picturePath);
                     params = new RequestParams();
                     try {
@@ -133,7 +135,7 @@ public class UploadActivity extends AppCompatActivity {
                     new android.os.Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            client.post("https://3lsx7bnlub.execute-api.eu-central-1.amazonaws.com/Prod/api/S3Bucket/PostFile", params, new AsyncHttpResponseHandler() {
+                            client.post("https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/real/api/S3Bucket/PostFile", params, new AsyncHttpResponseHandler() {
                                 @Override
                                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
