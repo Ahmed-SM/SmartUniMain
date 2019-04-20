@@ -1,24 +1,19 @@
 package com.aurak.smartuni.smartuni.Share;
 
 import android.Manifest;
-import android.app.DownloadManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -26,15 +21,28 @@ import com.aurak.smartuni.smartuni.R;
 import com.aurak.smartuni.smartuni.Share.Adapters.GalleryImageAdapter;
 import com.aurak.smartuni.smartuni.Share.Interfaces.IRecyclerViewClickListerner;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.MySSLSocketFactory;
 import com.loopj.android.http.RequestParams;
+import com.turbomanage.httpclient.AsyncCallback;
+import com.turbomanage.httpclient.HttpResponse;
+import com.turbomanage.httpclient.ParameterMap;
+import com.turbomanage.httpclient.android.AndroidHttpClient;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Random;
 
-import cz.msebera.android.httpclient.Header;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class UploadActivity extends AppCompatActivity {
 
@@ -46,6 +54,9 @@ public class UploadActivity extends AppCompatActivity {
     private RequestParams params;
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
+    private JSONArray arr;
+    private String[] list;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,27 +73,19 @@ public class UploadActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(layoutManager);
 
+        attemptFetch();
 
         Random random = new Random();
 
         final String[] images = new String[10];
 
+
         for (int i=0; i<images.length; i++)
             images[i] = "https://picsum.photos/600?image="+random.nextInt(1000+1);
 
 
-        final IRecyclerViewClickListerner listerner = new IRecyclerViewClickListerner() {
-            @Override
-            public void onClick(View view, int position) {
-                   Intent i =  new Intent(getApplicationContext(), FullViewActivity.class);
-                   i.putExtra("IMAGES", images);
-                   i.putExtra("POSITION", position);
-                   startActivity(i);
-            }
-        };
 
-        GalleryImageAdapter galleryImageAdapter = new GalleryImageAdapter(this,images,listerner);
-        recyclerView.setAdapter(galleryImageAdapter);
+
 
         client = new AsyncHttpClient(); //import the public server certificate into your default keystore
         client.setSSLSocketFactory(MySSLSocketFactory.getFixedSocketFactory());
@@ -113,9 +116,9 @@ public class UploadActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode){
+        switch (requestCode) {
             case RESULT_LOAD_IMAGE:
-                if(resultCode == RESULT_OK){
+                if (resultCode == RESULT_OK) {
                     Uri selectedImage = data.getData();
                     String[] filePathColumn = {MediaStore.Images.Media.DATA};
                     Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
@@ -125,84 +128,81 @@ public class UploadActivity extends AppCompatActivity {
                     cursor.close();
                     //imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
                     file = new File(picturePath);
-                    params = new RequestParams();
-                    try {
-                        params.put("file", file, "multipart/form-data");
+                    final OkHttpClient client = new OkHttpClient();
+                    RequestBody requestBody = new MultipartBody.Builder()
+                            .setType(MultipartBody.FORM)
+                            .addFormDataPart("file", file.getName(),
+                                    RequestBody.create(MediaType.parse("multipart/form-data"),
+                                            new File(picturePath)))
+                            .build();
 
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    new android.os.Handler().postDelayed(new Runnable() {
+                    Request request = new Request.Builder()
+                            .url("https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/real/api/S3Bucket/PostFile")
+                            .post(requestBody)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
                         @Override
-                        public void run() {
-                            client.post("https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/real/api/S3Bucket/PostFile", params, new AsyncHttpResponseHandler() {
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        public void onFailure(Call call, IOException e) {
 
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    super.onFinish();
-                                }
-
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-
-                                }
-                            });
                         }
-                    }, 2000);
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+
+                        }
+                    });
                 }
         }
     }
 
-    public void downloadFile(String uRl) {
 
-        File direct = new File(Environment.getExternalStorageDirectory()
-                + "/Downloads");
 
-        if (!direct.exists()) {
-            direct.mkdirs();
-        }
+    private void attemptFetch() {
 
-        DownloadManager mgr = (DownloadManager) this.getSystemService(Context.DOWNLOAD_SERVICE);
+        AndroidHttpClient httpClient = new AndroidHttpClient("https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/Prod/");
+        httpClient.setMaxRetries(5);
+        ParameterMap params = httpClient.newParams()
+                .add("Content-Type", "application/json");
+        httpClient.get("api/S3Bucket/GetFiles", params, new AsyncCallback() {
+            public void onComplete(HttpResponse httpResponse) {
+                Toast.makeText(UploadActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
 
-        Uri downloadUri = Uri.parse(uRl);
-        DownloadManager.Request request = new DownloadManager.Request(
-                downloadUri);
-
-        request.setAllowedNetworkTypes(
-                DownloadManager.Request.NETWORK_WIFI
-                        | DownloadManager.Request.NETWORK_MOBILE)
-                .setAllowedOverRoaming(false).setTitle("Demo")
-                .setDescription("Something useful. No, really.")
-                .setDestinationInExternalPublicDir("/Downloads", "bHA8KE7.gif");
-
-        mgr.enqueue(request);
-
-        // Open Download Manager to view File progress
-        Toast.makeText(this, "Downloading...",Toast.LENGTH_LONG).show();
-        startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
-
-    }
-    public  boolean haveStoragePermission() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.e("Permission error","You have permission");
-                downloadFile("https://s3.eu-central-1.amazonaws.com/letstrythisbucket/bHA8KE7.gif");
-                return true;
-            } else {
-
-                Log.e("Permission error","You have asked for permission");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                return false;
+                try {
+                    arr = new JSONArray(new String(httpResponse.getBodyAsString()));
+                    list = new String[arr.length()];
+                    if (arr != null) {
+                        int len = arr.length();
+                        for (int i=0;i<len;i++){
+                            try {
+                                list[i] = (arr.get(i).toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                final IRecyclerViewClickListerner listerner = new IRecyclerViewClickListerner() {
+                    @Override
+                    public void onClick(View view, int position) {
+                        Intent i =  new Intent(getApplicationContext(), FullViewActivity.class);
+                        i.putExtra("IMAGES", list);
+                        i.putExtra("POSITION", position);
+                        startActivity(i);
+                    }
+                };
+                GalleryImageAdapter galleryImageAdapter = new GalleryImageAdapter(getApplicationContext(),list,listerner);
+                recyclerView.setAdapter(galleryImageAdapter);
             }
-        }
-        else { //you dont need to worry about these stuff below api level 23
-            Log.e("Permission error","You already have the permission");
-            return true;
-        }
+
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
+
+
 }

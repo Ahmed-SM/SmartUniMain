@@ -3,7 +3,6 @@ package com.aurak.smartuni.smartuni;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,6 +12,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.aurak.smartuni.smartuni.Calender.Adapter.ListAdapter;
 import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerItemTouchHelperListener;
 import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerTouchHelper;
+import com.aurak.smartuni.smartuni.Calender.CalendarActivity;
 import com.aurak.smartuni.smartuni.Calender.Events;
 import com.aurak.smartuni.smartuni.Calender.Item;
 import com.aurak.smartuni.smartuni.Chat.StartActivity;
@@ -37,14 +38,17 @@ import com.aurak.smartuni.smartuni.Share.UploadActivity;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.MySSLSocketFactory;
+import com.turbomanage.httpclient.AsyncCallback;
+import com.turbomanage.httpclient.HttpResponse;
+import com.turbomanage.httpclient.ParameterMap;
+import com.turbomanage.httpclient.android.AndroidHttpClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,8 +56,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /*Issues log
 
@@ -61,19 +71,13 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 
  */
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, RecyclerItemTouchHelperListener {
+        implements NavigationView.OnNavigationItemSelectedListener, RecyclerItemTouchHelperListener, SwipeRefreshLayout.OnRefreshListener {
     BottomNavigationView bottomNavigation;
     FloatingActionButton btn;
     public final String BackEndURL = "https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/Prod/";
     private RecyclerView recyclerView;
-    private RecyclerView recyclerView2;
-    private RecyclerView recyclerView3;
     private RecyclerView.Adapter adapter;
-    private RecyclerView.Adapter adapter2;
-    private RecyclerView.Adapter adapter3;
     private List<Item> listItems;
-    private List<Item> listItems2;
-    private List<Item> listItems3;
     private List<String> listOfId ;
     private List<String> listOfDec;
     static Pair<ArrayList<Event>, ArrayList<String>> events;
@@ -83,7 +87,7 @@ public class HomeActivity extends AppCompatActivity
     private TextView numberOfEvents;
     private TextView header;
     private AlertDialog dialog;
-
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     private StringEntity jsonEntity;
     public AsyncHttpClient client;
@@ -96,9 +100,7 @@ public class HomeActivity extends AppCompatActivity
     boolean doubleClick = false;
     String holdDate;
 
-    private int adapterIndex;
-    private int listIndex;
-    private int viewIndex;
+
 
 
     @Override
@@ -150,9 +152,9 @@ public class HomeActivity extends AppCompatActivity
 
 
         if (clientUpdated == false) {
-            attemptFetch(client);
+            attemptFetch();
         }
-        displayEvents();
+
 
         ItemTouchHelper.SimpleCallback itemTouchHelperCallBack
                 = new RecyclerTouchHelper(0, ItemTouchHelper.LEFT, this);
@@ -160,36 +162,44 @@ public class HomeActivity extends AppCompatActivity
 //        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView2);
 //        new ItemTouchHelper(itemTouchHelperCallBack).attachToRecyclerView(recyclerView3);
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        mSwipeRefreshLayout = findViewById(R.id.swipe_container);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary,
+                android.R.color.holo_green_dark,
+                android.R.color.holo_orange_dark,
+                android.R.color.holo_blue_dark);
+
+
+        mSwipeRefreshLayout.post(new Runnable() {
+
             @Override
             public void run() {
-                if (jsonObjects != null) {
-                    displayEvents();
+
+                if(mSwipeRefreshLayout != null) {
+                    mSwipeRefreshLayout.setRefreshing(true);
                 }
+                attemptFetch();
             }
-        }, 2000);
-
-
-
+        });
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder mBuilder = new AlertDialog.Builder(HomeActivity.this);
-                View mView = getLayoutInflater().inflate(R.layout.event_add, null);
-                buttonConfirm = mView.findViewById(R.id.addbutton);
-                input = mView.findViewById(R.id.input);
-                input.setVisibility(View.VISIBLE);
-                initCalender(mView);
-
-                mBuilder.setView(mView);
-
-                dialog = mBuilder.create();
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-
-                dialog.show();
+                startActivity(new Intent(HomeActivity.this, CalendarActivity.class));
+//                AlertDialog.Builder mBuilder = new AlertDialog.Builder(HomeActivity.this);
+//                View mView = getLayoutInflater().inflate(R.layout.event_add, null);
+//                buttonConfirm = mView.findViewById(R.id.addbutton);
+//                input = mView.findViewById(R.id.input);
+//                input.setVisibility(View.VISIBLE);
+//                initCalender(mView);
+//
+//                mBuilder.setView(mView);
+//
+//                dialog = mBuilder.create();
+//                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//
+//
+//                dialog.show();
 
             }
 
@@ -223,7 +233,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
     public void displayEvents() {
-
+        mSwipeRefreshLayout.setRefreshing(true);
         listItems = new ArrayList<>();
 
 
@@ -249,6 +259,7 @@ public class HomeActivity extends AppCompatActivity
             }
         }
         Events.clear();
+        mSwipeRefreshLayout.setRefreshing(false);
 
     }
 
@@ -282,11 +293,11 @@ public class HomeActivity extends AppCompatActivity
                             Event ev = new Event(Color.GREEN,dateToAdd.getTime(), //autoCompleteTextView.getText()
                                     input.getText());
                             calendarView.addEvent(ev); //toDO IMPROVE THIS MESS
-                            attemptToPost(client,jsonEntity, holdDate, input.getText().toString());
+                            attemptToPost(holdDate, input.getText().toString());
                             clientUpdated = false;
                             Events.clear();
                             dialog.dismiss();
-                            attemptFetch(client);
+                            attemptFetch();
                             ((ListAdapter) adapter).clear();
                             ((ListAdapter) adapter).notifyDataSetChanged();
                             recyclerView.removeAllViews();
@@ -315,7 +326,7 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -373,40 +384,32 @@ public class HomeActivity extends AppCompatActivity
         return true;
     }
 
-    private void attemptFetch(AsyncHttpClient client) {
-        client.get(BackEndURL+"api/Events", new JsonHttpResponseHandler(){
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                super.onSuccess(statusCode, headers, response);
-                Toast.makeText(getApplicationContext(), response.toString(), Toast.LENGTH_SHORT).show();
-                jsonObjects = response;
+    private void attemptFetch() {
 
-                    if (jsonObjects.length() > 0) {
-                        fetchDates();
-
-                        if (clientUpdated != true) {
-
-                            //clientUpdated = true;
-                            //startActivity(getIntent());
-                        }
-                    }
-
-
+        AndroidHttpClient httpClient = new AndroidHttpClient(BackEndURL);
+        httpClient.setMaxRetries(5);
+        ParameterMap params = httpClient.newParams()
+                .add("Content-Type", "application/json");
+        httpClient.get("api/Events", params, new AsyncCallback() {
+            public void onComplete(HttpResponse httpResponse) {
+                Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                JSONArray arr = null;
+                try {
+                    arr = new JSONArray(new String(httpResponse.getBodyAsString()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
-                Toast.makeText(getApplicationContext(), response.toString()+"Object", Toast.LENGTH_SHORT).show();
-
+                jsonObjects = arr;
+                fetchDates();
+                clientUpdated = false;
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                super.onFailure(statusCode, headers, responseString, throwable);
-                Toast.makeText(HomeActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+            public void onError(Exception e) {
+                e.printStackTrace();
             }
-        } );
+        });
+
     }
     private void fetchDates() {
         Events.clear();
@@ -435,144 +438,104 @@ public class HomeActivity extends AppCompatActivity
                 e.printStackTrace();
             }
         }
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // if (jsonObjects != null) {
+                displayEvents();
+                //}
+            }
+        }, 1);
     }
 
-    private void attemptToPost(AsyncHttpClient client, StringEntity jsonEntity, String date, String desciption ) {
-        JSONObject jsonParams = new JSONObject();
-        try {
-            jsonParams.put("date", date);
-            jsonParams.put("description", desciption);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    private void attemptToPost(String date, String desciption ) {
+        AndroidHttpClient httpClient = new AndroidHttpClient(BackEndURL);
+        httpClient.setMaxRetries(5);
+        ParameterMap params = httpClient.newParams()
+                .add("date",date)
+                .add("description", desciption);
+        httpClient.addHeader("Accept", "application/json");
+        httpClient.addHeader("Content-Type", "application/json");
+        httpClient.addHeader("Authorization", "Basic Og==");
 
-        try {
-            jsonEntity = new StringEntity(jsonParams.toString());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        httpClient.post("api/Events", params, new AsyncCallback() {
+            public void onComplete(HttpResponse httpResponse) {
+                Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
 
-        client.post(null, BackEndURL+"api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        super.onSuccess(statusCode, headers, response);
-
-                            Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
-
-                            clientUpdated = false;
-
-
-                    }
-
-                     @Override
-                     public void onFinish() {
-                        super.onFinish();
-                            Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
-                            clientUpdated = false;
-
-                    }
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                        super.onFailure(statusCode, headers, throwable, errorResponse);
-
-                        Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
-                        clientUpdated = false;
-                    }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
-                Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
+                clientUpdated = false;
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                super.onFailure(statusCode, headers, responseString, throwable);
-                Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
+            public void onError(Exception e) {
+                e.printStackTrace();
             }
         });
+
     }
     public void attemptToUpdate(String id, String date, String desciption ) {
         JSONObject jsonParams = new JSONObject();
         try {
-            jsonParams.put("id", Integer.parseInt(id));
-            jsonParams.put("date", date);
+            jsonParams.put("id", id);
+            jsonParams.put("date",date);
             jsonParams.put("description", desciption);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        try {
-            jsonEntity = new StringEntity(jsonParams.toString());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        final OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(JSON,jsonParams.toString());
+        final Request request = new Request.Builder()
+                .url(BackEndURL+"api/Events")
+                .put(body)
+                .build();
 
-        client.put(null, BackEndURL+"api/Events",jsonEntity, "application/json", new JsonHttpResponseHandler() {
+        client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
-
-                Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
-
-                clientUpdated = false;
-
+            public void onFailure(Call call, IOException e) {
 
             }
+
             @Override
-            public void onFinish() {
-                super.onFinish();
-                Toast.makeText(HomeActivity.this, "خلاص ! " , Toast.LENGTH_SHORT).show();
-                clientUpdated = false;
-
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    // Handle the error
+                }
+                attemptFetch();
             }
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
-
-                Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
-            }
-
         });
-        displayEvents();
     }
 
     @Override
     public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction, int position) {
+        AndroidHttpClient httpClient = new AndroidHttpClient(BackEndURL);
+        httpClient.setMaxRetries(5);
+        httpClient.addHeader("Accept", "application/json");
+        httpClient.addHeader("Authorization", "Basic Og==");
         if(viewHolder instanceof  ListAdapter.ViewHolder){
             recyclerView = ((ListAdapter.ViewHolder) viewHolder).recyclerView;
             Item item =((ListAdapter) recyclerView.getAdapter()).getListItems().get(position);
             ((ListAdapter) recyclerView.getAdapter()).deletedEvent(position);
             if ( item.id.equals("No Event") == true) return;
             recyclerView.removeViewAt(position);
-            client.delete(null, String.format(BackEndURL+"api/Events/%s", item.id) ,null,"application/json", new JsonHttpResponseHandler(){
-
+            httpClient.delete(String.format("api/Events/%s", item.id), null, new AsyncCallback() {
                 @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                    super.onSuccess(statusCode, headers, response);
-                    Toast.makeText(HomeActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
-                    //listItems.remove(viewHolder.getAdapterPosition());
+                public void onComplete(HttpResponse httpResponse) {
+                    Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
-                public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                    super.onSuccess(statusCode, headers, responseString);
-                    Toast.makeText(HomeActivity.this, responseString, Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                    super.onFailure(statusCode, headers, throwable, errorResponse);
-                    Toast.makeText(HomeActivity.this, statusCode, Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                    super.onFailure(statusCode, headers, responseString, throwable);
-                    Toast.makeText(HomeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                public void onError(Exception e) {
+                    Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
 
         }
+    }
+
+    @Override
+    public void onRefresh() {
+        attemptFetch();
     }
 }

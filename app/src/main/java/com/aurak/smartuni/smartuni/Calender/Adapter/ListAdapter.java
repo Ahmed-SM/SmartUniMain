@@ -126,13 +126,14 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             holder.textViewDesc.setText(item.getDesc());
             holder.recyclerView=recyclerView;
 
-
         holder.eventpopup.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 final EditText taskName = dialog.findViewById(R.id.taskName);
                 final EditText monthYearPop = dialog.findViewById(R.id.monthyearpop);
                 Button editButton = dialog.findViewById(R.id.Editbutton);
+                if (listItems.get(0).id.equals("No Event")) return;
                 taskName.setText(" ");
                 monthYearPop.setText(" ");
 

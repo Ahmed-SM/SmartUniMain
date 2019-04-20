@@ -21,6 +21,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.turbomanage.basic-http-client:http-client-android:0.89'
     implementation 'com.loopj.android:android-async-http:1.4.9'
     implementation 'com.github.florent37:materialtextfield:1.0.7'
     implementation 'com.github.sundeepk:compact-calendar-view:3.0.0'

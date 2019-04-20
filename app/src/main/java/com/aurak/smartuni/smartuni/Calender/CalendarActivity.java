@@ -3,7 +3,6 @@ package com.aurak.smartuni.smartuni.Calender;
 import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -19,25 +18,32 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aurak.smartuni.smartuni.HomeActivity;
 import com.aurak.smartuni.smartuni.R;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.MySSLSocketFactory;
+import com.turbomanage.httpclient.AsyncCallback;
+import com.turbomanage.httpclient.HttpResponse;
+import com.turbomanage.httpclient.ParameterMap;
+import com.turbomanage.httpclient.android.AndroidHttpClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import cz.msebera.android.httpclient.Header;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static com.aurak.smartuni.smartuni.Notifcation.Notif.CHANNEL_1_ID;
 
@@ -45,9 +51,7 @@ public class CalendarActivity extends AppCompatActivity {
 
     CompactCalendarView calendarView;
     AutoCompleteTextView autoCompleteTextView;
-    TextView textView3;
     TextView textView5;
-    TextView buttonBack;
     Button buttonConfirm;
     Date dateToAdd;
     boolean doubleClick = false;
@@ -55,22 +59,23 @@ public class CalendarActivity extends AppCompatActivity {
     private NotificationManagerCompat notificationManagerCompat;
     JSONArray jsonObjects;
     ArrayList<String> listOfDate;
+    public final String BackEndURL = "https://zlqykmwyml.execute-api.eu-central-1.amazonaws.com/Prod/";
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        AndroidHttpClient httpClient = new AndroidHttpClient(BackEndURL);
+        httpClient.setMaxRetries(5);
+        httpClient.addHeader("Accept", "application/json");
+        httpClient.addHeader("Content-Type", "application/json");
+        httpClient.addHeader("Authorization", "Basic Og==");
 
-        final AsyncHttpClient client = new AsyncHttpClient(); //import the public server certificate into your default keystore
-        client.setSSLSocketFactory(MySSLSocketFactory.getFixedSocketFactory());
-        client.addHeader("Accept", "application/json");
 
-        client.addHeader("Content-Type", "application/json");
-        client.addHeader("Authorization", "Basic Og==");
 
         listOfDate = new ArrayList<>();
-        attemptFetch(client);
+        attemptFetch(httpClient);
 
 
         String languageToLoad  = "en";
@@ -82,28 +87,20 @@ public class CalendarActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_calendar);
         calendarView = findViewById(R.id.compactcalendar_view);
-        textView3 = findViewById(R.id.textView3);
+
         textView5 = findViewById(R.id.textView5);
-        buttonBack = findViewById(R.id.buttonBack);
+
         buttonConfirm = findViewById(R.id.buttonConfirm);
         autoCompleteTextView = findViewById(R.id.Description);
 
-        textView5.setText(new SimpleDateFormat("yyyy-MM",Locale.getDefault()).format(new Date()));
+
+        textView5.setText("<  " + new SimpleDateFormat("yyyy-MM",Locale.getDefault()).format(new Date()) + "  >");
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        textView3.setText(date);
         notificationManagerCompat = NotificationManagerCompat.from(this);
 
         calendarView.setUseThreeLetterAbbreviation(true);
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (jsonObjects != null) {
-                    fetchDates();
-                }
-            }
-        }, 2000);
+
 
 
         calendarView.setListener(new CompactCalendarView.CompactCalendarViewListener() {
@@ -120,18 +117,13 @@ public class CalendarActivity extends AppCompatActivity {
                     doubleClick = true;
                 }
                 holdDate = new SimpleDateFormat("yyyy-MM-dd").format(dateClicked);
-
-
-                textView3.setText(date);
                 dateToAdd=dateClicked;
                 buttonConfirm.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        SimpleDateFormat date2 = new SimpleDateFormat("yyyy-MM-dd");
                         if (autoCompleteTextView.length()> 1) {
-                            Event ev = new Event(Color.GREEN, dateToAdd.getTime(), autoCompleteTextView.getText());
+                            Event ev = new Event(Color.GREEN, dateToAdd.getTime(), autoCompleteTextView.getText().toString());
                             calendarView.addEvent(ev);
-                            autoCompleteTextView.setText("");
                             Events.setEvents(ev," ");
                         }
                             Activity activity = CalendarActivity.this;
@@ -140,26 +132,54 @@ public class CalendarActivity extends AppCompatActivity {
                                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                         }
+
+                        postEvent();
+                        finish();
                     }
                 });
             }
 
             @Override
             public void onMonthScroll(Date firstDayOfNewMonth) {
-                textView5.setText(new SimpleDateFormat("yyyy-MM").format(firstDayOfNewMonth));
+                textView5.setText("<  " +new SimpleDateFormat("yyyy-MM").format(firstDayOfNewMonth) + "  >");
             }
         });
 
-        buttonBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendOnChannel1(v);
-                Intent intent = new Intent(CalendarActivity.this, HomeActivity.class);
-                startActivity(intent);
-            }
-        });
 
     }//onCreate
+
+    private void postEvent() {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("date", holdDate);
+            jsonParams.put("description", autoCompleteTextView.getText().toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        final OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(JSON,jsonParams.toString());
+        final Request request = new Request.Builder()
+                .url(BackEndURL+"api/Events")
+                .post(body)
+                .build();
+
+       client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    // Handle the error
+                }
+
+            }
+        });
+    }
 
     private void fetchDates() {
        for (int i = 0; i< jsonObjects.length(); i++){
@@ -185,30 +205,36 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
-    private void attemptFetch(AsyncHttpClient client) {
+    private void attemptFetch(AndroidHttpClient client) {
 
-        client.get("https://10.0.2.2:5001/api/users/1", new JsonHttpResponseHandler(){
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                super.onSuccess(statusCode, headers, response);
-                Toast.makeText(getApplicationContext(), response.toString(), Toast.LENGTH_SHORT).show();
-                jsonObjects = response;
+        ParameterMap params = client.newParams()
+                .add("Content-Type", "application/json");
+
+        client.get("api/Events", params, new AsyncCallback() {
+            public void onComplete(HttpResponse httpResponse) {
+                Toast.makeText(getApplicationContext(), httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                JSONArray arr = null;
+                try {
+                    arr = new JSONArray(new String(httpResponse.getBodyAsString()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                jsonObjects = arr;
+
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                            fetchDates();
+                    }
+                }, 1);
             }
-
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
-                Toast.makeText(getApplicationContext(), response.toString()+"Object", Toast.LENGTH_SHORT).show();
-
+            public void onError(Exception e) {
+                Toast.makeText(CalendarActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                super.onFailure(statusCode, headers, responseString, throwable);
-                Toast.makeText(CalendarActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-            }
-        } );
-    }//attemptFetch
+        });
+    }
 
     public void sendOnChannel1(View v){
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
