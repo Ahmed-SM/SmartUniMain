@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="personal_calendar">Personal Calendar</string>
+    <string name="result_text_default">Please focus camera to QR Code</string>
 </resources>

@@ -25,7 +25,6 @@ import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.Calender.Adapter.ListAdapter;
 import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerItemTouchHelperListener;
@@ -33,7 +32,7 @@ import com.aurak.smartuni.smartuni.Calender.Adapter.RecyclerTouchHelper;
 import com.aurak.smartuni.smartuni.Calender.CalendarActivity;
 import com.aurak.smartuni.smartuni.Calender.Events;
 import com.aurak.smartuni.smartuni.Calender.Item;
-import com.aurak.smartuni.smartuni.Chat.StartActivity;
+import com.aurak.smartuni.smartuni.Chat.LoginChatActivity;
 import com.aurak.smartuni.smartuni.Share.UploadActivity;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
@@ -151,7 +150,7 @@ public class HomeActivity extends AppCompatActivity
 //        recyclerView3.setLayoutManager(new LinearLayoutManager(this));
 
 
-        if (clientUpdated == false) {
+        if (!clientUpdated) {
             attemptFetch();
         }
 
@@ -216,10 +215,11 @@ public class HomeActivity extends AppCompatActivity
                                 return true;
                             case R.id.navigation_vrtualnav:
                                 setTitle("Navigation");
+                                //startActivity(new Intent(HomeActivity.this, QrActivity.class));
                                 return true;
                             case R.id.navigation_messenger:
                                 setTitle("Chat");
-                                startActivity(new Intent(HomeActivity.this, StartActivity.class));
+                                startActivity(new Intent(HomeActivity.this, LoginChatActivity.class));
                                 return true;
                             case R.id.navigation_food:
                                 setTitle("Food");
@@ -392,7 +392,7 @@ public class HomeActivity extends AppCompatActivity
                 .add("Content-Type", "application/json");
         httpClient.get("api/Events", params, new AsyncCallback() {
             public void onComplete(HttpResponse httpResponse) {
-                Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                ////Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
                 JSONArray arr = null;
                 try {
                     arr = new JSONArray(new String(httpResponse.getBodyAsString()));
@@ -418,7 +418,7 @@ public class HomeActivity extends AppCompatActivity
         listOfId = new ArrayList<>();
         for (int i = 0; i< jsonObjects.length(); i++){
             try {
-                Toast.makeText(HomeActivity.this, jsonObjects.getJSONObject(i).getJSONObject("event").getString("date"), Toast.LENGTH_SHORT).show();
+                ////TToast.makeText(HomeActivity.this, jsonObjects.getJSONObject(i).getJSONObject("event").getString("date"), Toast.LENGTH_SHORT).show();
                 listOfDate.add(jsonObjects.getJSONObject(i).getJSONObject("event").getString("date"));
                 listOfId.add(jsonObjects.getJSONObject(i).getJSONObject("event").getString("id"));
                 listOfDec.add(jsonObjects.getJSONObject(i).getJSONObject("event").getString("description"));
@@ -433,7 +433,7 @@ public class HomeActivity extends AppCompatActivity
                 Event ev = new Event(Color.GREEN, dateToParse.getTime(),listOfDec.get(i));
                 Events.setEvents(ev, listOfId.get(i));
 
-                Toast.makeText(getApplicationContext(), dateToParse.toString(), Toast.LENGTH_SHORT).show();
+                ////TToast.makeText(getApplicationContext(), dateToParse.toString(), Toast.LENGTH_SHORT).show();
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -461,7 +461,7 @@ public class HomeActivity extends AppCompatActivity
 
         httpClient.post("api/Events", params, new AsyncCallback() {
             public void onComplete(HttpResponse httpResponse) {
-                Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                ////TToast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
 
                 clientUpdated = false;
             }
@@ -522,12 +522,12 @@ public class HomeActivity extends AppCompatActivity
             httpClient.delete(String.format("api/Events/%s", item.id), null, new AsyncCallback() {
                 @Override
                 public void onComplete(HttpResponse httpResponse) {
-                    Toast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                    ////TToast.makeText(HomeActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    ////TToast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
 

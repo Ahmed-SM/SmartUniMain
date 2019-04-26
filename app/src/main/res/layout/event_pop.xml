@@ -42,7 +42,7 @@
             android:background="@android:color/white"
             android:text="Edit"
 
-            />
+            android:textColor="@color/common_google_signin_btn_text_dark_focused" />
 
     </LinearLayout>
 

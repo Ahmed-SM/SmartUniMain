@@ -1,5 +1,6 @@
 package com.aurak.smartuni.smartuni.Calender.Adapter;
 
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -35,6 +37,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private ListAdapter.ViewHolder holderInstance;
     private RecyclerView recyclerView;
     private Item NoItem;
+    private DatePickerDialog.OnDateSetListener mDateSetListener;
 
 
 
@@ -64,7 +67,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
         final ListAdapter.ViewHolder viewHold = new ListAdapter.ViewHolder(v);
 
-        dialog = new Dialog(context);
+        dialog = new Dialog(context, android.R.style.Theme_Holo_Dialog_MinWidth);
         dialog.setContentView(R.layout.event_pop);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
@@ -143,6 +146,26 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
                 taskName.setText(listItems.get(holder.getAdapterPosition()).getDesc());
                 monthYearPop.setText(listItems.get(holder.getAdapterPosition()).getTime());
+
+
+                        Calendar cal = Calendar.getInstance();
+                        int year = cal.get(Calendar.YEAR);
+                        int month = cal.get(Calendar.MONTH);
+                        int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                            DatePickerDialog dialog = new DatePickerDialog(context, android.R.style.Theme_Holo_Dialog_MinWidth, mDateSetListener, year, month, day);
+                            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                            dialog.show();
+                        }
+
+                mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        monthYearPop.setText(year+"-"+(month+1)+"-"+dayOfMonth);
+                    }
+                };
+
 
                 editButton.setOnClickListener(new View.OnClickListener() {
                     @Override

@@ -198,7 +198,7 @@ public class CalendarActivity extends AppCompatActivity {
                 Event ev = new Event(Color.GREEN, dateToParse.getTime(), eventDate);
                 Events.setEvents(ev, " ");
 
-                Toast.makeText(getApplicationContext(), dateToParse.toString(), Toast.LENGTH_SHORT).show();
+                ////TToast.makeText(getApplicationContext(), dateToParse.toString(), Toast.LENGTH_SHORT).show();
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -212,7 +212,7 @@ public class CalendarActivity extends AppCompatActivity {
 
         client.get("api/Events", params, new AsyncCallback() {
             public void onComplete(HttpResponse httpResponse) {
-                Toast.makeText(getApplicationContext(), httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                ////TToast.makeText(getApplicationContext(), httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
                 JSONArray arr = null;
                 try {
                     arr = new JSONArray(new String(httpResponse.getBodyAsString()));
@@ -231,7 +231,7 @@ public class CalendarActivity extends AppCompatActivity {
             }
             @Override
             public void onError(Exception e) {
-                Toast.makeText(CalendarActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                ////T Toast.makeText(CalendarActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

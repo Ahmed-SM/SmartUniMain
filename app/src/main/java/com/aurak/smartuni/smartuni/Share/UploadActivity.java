@@ -9,13 +9,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.Toast;
 
 import com.aurak.smartuni.smartuni.R;
 import com.aurak.smartuni.smartuni.Share.Adapters.GalleryImageAdapter;
@@ -101,8 +99,8 @@ public class UploadActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                ////Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                ////.setAction("Action", null).show();
                 Intent i = new Intent(Intent.ACTION_PICK,
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(i, RESULT_LOAD_IMAGE);
@@ -166,7 +164,7 @@ public class UploadActivity extends AppCompatActivity {
                 .add("Content-Type", "application/json");
         httpClient.get("api/S3Bucket/GetFiles", params, new AsyncCallback() {
             public void onComplete(HttpResponse httpResponse) {
-                Toast.makeText(UploadActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
+                ////TToast.makeText(UploadActivity.this, httpResponse.getBodyAsString(), Toast.LENGTH_SHORT).show();
 
                 try {
                     arr = new JSONArray(new String(httpResponse.getBodyAsString()));
