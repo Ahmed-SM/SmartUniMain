@@ -150,9 +150,6 @@ public class HomeActivity extends AppCompatActivity
 //        recyclerView3.setLayoutManager(new LinearLayoutManager(this));
 
 
-        if (!clientUpdated) {
-            attemptFetch();
-        }
 
 
         ItemTouchHelper.SimpleCallback itemTouchHelperCallBack
